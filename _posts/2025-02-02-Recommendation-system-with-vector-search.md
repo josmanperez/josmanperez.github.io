@@ -12,7 +12,7 @@ image:
 comments: true
 ---
 
-In this tutorial, I am going to explain an application project I have created showing how **Atlas Vector Search**, **Atlas Search** and a combined **RAG** system on movie finding by plot works.
+In this tutorial, I am going to explain an application project I have created showing how **Atlas Vector Search**, **Atlas Search**, and a combined **RAG** system on movie finding by plot works.
 
 We will take a step by step look at the three parts of this project to explain how it works and what is going on behind the scenes. To do so, **part 1** is going to start with the creation of vectors using **OpenAI + Langchain + MongoDB Atlas**.
 
@@ -22,7 +22,7 @@ You can find the repository of this project [here](https://github.com/josmanpere
 
 ## Part 1: **CreateAtlasVectorSearch**
 
-After clonning the [Github repository](https://github.com/josmanperez/atlas-vector-search-rag), you will find a folder with the name `createAtlasVectorSearch`. Inside this directory is where we are going to work in part 1 of this 3 part series. First, we need to do is to duplicate the `env.sample` file and rename it to `.env`.
+After cloning the [Github repository](https://github.com/josmanperez/atlas-vector-search-rag), you will find a folder with the name `createAtlasVectorSearch`. Inside this directory is where we are going to work in part 1 of this 3 part series. First, we need to duplicate the `env.sample` file and rename it to `.env`.
 
 ```bash
 OPENAI_API_KEY=
@@ -38,18 +38,18 @@ MODEL_NAME=text-embedding-3-small
 
 We need to fill out the variables here with the data needed for this portion of the application to work.
 
-* `OPENAI_API_KEY`: The OpenAI key needed to make request to OpenAI. You can create yours in [the official OpenAI key section](https://platform.openai.com/docs/overview).
-* `ATLAS_CLUSTER_URI`: This the MongoDB Atlas connection URI to connect to your cluster from an application. Please remember that, if you are using [Netwook Access Lists](https://www.mongodb.com/docs/atlas/security/ip-access-list/) to your cluster, add the IP from where you are going to run this application.
+* `OPENAI_API_KEY`: The OpenAI key needed to make a request to OpenAI. You can create yours in [the official OpenAI key section](https://platform.openai.com/docs/overview).
+* `ATLAS_CLUSTER_URI`: This is the MongoDB Atlas connection URI to connect to your cluster from an application. Please remember that if you are using [Network Access Lists](https://www.mongodb.com/docs/atlas/security/ip-access-list/) to your cluster, add the IP from where you are going to run this application.
 * `GROUP_ID`: [The Project ID displayed at the top of the page in Atlas](https://www.mongodb.com/docs/atlas/tutorial/manage-project-settings/#manage-project-settings-1).
 * `CLUSTER_NAME`: The name of your Cluster.
-* `PUBLIC_KEY`: The [public key](https://www.mongodb.com/docs/atlas/configure-api-access/) needed to access programmatically to you Atlas cluster.
-* `PRIVATE_KEY`: The [private key](https://www.mongodb.com/docs/atlas/configure-api-access/) needed to access programmatically to you Atlas cluster.
+* `PUBLIC_KEY`: The [public key](https://www.mongodb.com/docs/atlas/configure-api-access/) needed to access programmatically to your Atlas cluster.
+* `PRIVATE_KEY`: The [private key](https://www.mongodb.com/docs/atlas/configure-api-access/) needed to access programmatically to your Atlas cluster.
 * `ATLAS_EMBEDDING_NAMESPACE`: This is the namespace (Database.Collection) where the embedding vector will be located.
 * `ATLAS_NAMESPACE`: This is the namespace (Database.Collection) where the original documents are stored. The ones we are going to use for generating the embedding vectors.
 * `MODEL_NAME`: The OpenAI model we are going to use for embedding.
 * `EMBEDDING_KEY`: The field name (collection field name) where our vector is located within each document.
 
-An example of a `.env` file finished, would be somewhat similar to the following:
+An example of a `.env` file finished would be somewhat similar to the following:
 
 ```bash
 OPENAI_API_KEY=sk-proj-5zSKg5QIK1-***
@@ -77,9 +77,9 @@ We will be prompted with several different options to choose from:
 ```bash
 1 - Create an Embedding array for the plot field on the sample_mflix.movies collection in your Atlas Cluster.
 2 - Create an euclidean type Atlas Vector Search Index in your Atlas Cluster.
-3 - Create an cosine type Atlas Vector Search Index in your Atlas Cluster.
+3 - Create a cosine type Atlas Vector Search Index in your Atlas Cluster.
 4 - Create a dotProduct type Atlas Vector Search Index in your Atlas Cluster.
-5 - Create a Atlas Search index in your Atlas Cluster.
+5 - Create an Atlas Search index in your Atlas Cluster.
 6 - Query using an Atlas Vector Search Index.
 ```
 
@@ -89,7 +89,7 @@ Let's look at what these options do one by one:
 
 When this option is selected, the function `createEmbeddings` is called. This will execute an aggregation pipeline that will look for the field `plot` or `fullplot` (as we want to get the plot of the movies in the `sample_mflix.movies` collection).
 
-> Please note that for this tutotial to work _as is_, the [MongoDB Sample collection](https://www.mongodb.com/docs/atlas/sample-data/sample-mflix/) must have been loaded in your cluster, specifically the `sample_mflix.movies`.
+> Please note that for this tutorial to work _as is_, the [MongoDB Sample collection](https://www.mongodb.com/docs/atlas/sample-data/sample-mflix/) must have been loaded in your cluster, specifically the `sample_mflix.movies`.
 {: .prompt-info }
 
 The aggregation pipeline looks like:
@@ -122,7 +122,7 @@ The aggregation pipeline looks like:
 }]
 ```
 
-This will return the `fullplot` of each movies, and if the `fullplot` field do not exitst will return the `plot` in the `fullplot` field. As long with this, the `year`, `type` and `_id` will be returned. The `year` and `type` would be useful for enabling [pre-filtering](https://www.mongodb.com/docs/atlas/atlas-vector-search/tune-vector-search/#pre-filter-data) when using Atlas Vector Search.
+This will return the `fullplot` of each movie, and if the `fullplot` field does not exist, it will return the `plot` in the `fullplot` field. Along with this, the `year`, `type` and `_id` will also be returned. The `year` and `type` would be useful for enabling [pre-filtering](https://www.mongodb.com/docs/atlas/atlas-vector-search/tune-vector-search/#pre-filter-data) when using Atlas Vector Search.
 
 This part of the code will look like:
 
@@ -162,7 +162,7 @@ for await (const doc of await collection.aggregate([
 }
 ```
 
-Therefore, we are iterating in each movies document and returning the `fullplot`, `year`, `type` and `_id` and adding that result in an array variable `fullplot`.
+Therefore, we are iterating in each movie's document and returning the `fullplot`, `year`, `type` and `_id` and adding that result in an array variable `fullplot`.
 
 Once we have this array created, we are going to use the static [Langchain `MongoDBAtlasVectorSearch` class](https://v03.api.js.langchain.com/classes/_langchain_mongodb.MongoDBAtlasVectorSearch.html) to create a vector store the list of documents `fullplot` embedded in a vector. This first converts the documents to vectors and then adds them to the MongoDB collection. We are going to use `OpenAIEmbeddings` to create the embeddings from the `fullplot` text field.
 
@@ -190,14 +190,14 @@ const vectorstore = await MongoDBAtlasVectorSearch.fromTexts(
   });
 ```
 
-There a few important things here that we are going to cover one by one:
+There are a few important things here that we are going to cover one by one:
 
-* `modelName`: This is the embedding model we are going to use to generate the vector embeddings. For this particular example since we are going to embbed text fields, I am using `text-embedding-3-small` from OpenAI.
+* `modelName`: This is the embedding model we are going to use to generate the vector embeddings. For this particular example, since we are going to embed text fields, I am using `text-embedding-3-small` from OpenAI.
 
 > Please note that in part two of this tutorial, the input/question **must be embedded using the same model**.
 {: .prompt-info }
 
-* `indexName`: This the name of the Vector Search index that we are going to create later on in Atlas and that we will use to retrieve the similary search.
+* `indexName`: This is the name of the Vector Search index that we are going to create later on in Atlas and that we will use to retrieve the similarity search.
 * `textKey`: The name of the collection field containing the raw content and corresponds to the plaintext of `'pageContent'`.
 * `embeddingKey`: The name of the collection field containing the embedded vector.
 
@@ -228,9 +228,9 @@ vectorstore.addDocuments(upsertedDocs, { ids: assignedIds })
   });
 ```
 
-We are using `upsertable` to avoid duplicating documents if this option is selected more than once and the vector embeddings is already created for a certain document.
+We are using `upsertable` to avoid duplicating documents if this option is selected more than once and the vector embeddings are already created for a certain document.
 
-This part of our application will take a bit to execute but by the time it ends, in your Atlas Cluster you wil find a new database and a new collection with documents with the following structure:
+This part of our application will take a bit to execute but by the time it ends, in your Atlas Cluster you will find a new database and a new collection with documents with the following structure:
 
 ```bash
 { 
@@ -286,9 +286,9 @@ Thus, our body will have:
 }
 ```
 
-Lets talk a little bit about the above fields:
+Let's talk a little bit about the above fields:
 
-* `database` and `collectionName`: This will tell the index which namespace is the one that have the documents to query. In this case, when we are calling this function we are passing the `embeddingNamespace` variable that contains the `${process.env.ATLAS_EMBEDDING_NAMESPACE}` that we have defined in the `.env` file:
+* `database` and `collectionName`: This will tell the index which namespace is the one that has the documents to query. In this case, when we are calling this function we are passing the `embeddingNamespace` variable that contains the `${process.env.ATLAS_EMBEDDING_NAMESPACE}` that we have defined in the `.env` file:
 
 ```js
 createIndex(embeddingNamespace, type)
@@ -298,7 +298,7 @@ createIndex(embeddingNamespace, type)
   .catch(handleError);
 ```
 
-* `name`: This will defined the name of the index. In this case, there are three types of algorithm (-_by the time this tutorial has been written_-) avaialble in Atlas. Euclidean, Cosine and dotProduct. For this, is the `type === 'euclidean'` we are going to use the name `vs_euclidean` but if it is `cosine` we are going to use the name `vs_cosine`. The same for `dotProduct` with `vs_dotProduct`.
+* `name`: This will define the name of the index. In this case, there are three types of algorithms (-_by the time this tutorial has been written_-) available in Atlas. Euclidean, Cosine and dotProduct. For this, is the `type === 'euclidean'` we are going to use the name `vs_euclidean` but if it is `cosine` we are going to use the name `vs_cosine`. The same for `dotProduct` with `vs_dotProduct`.
 
 > **euclidean** - measures the distance between ends of vectors. This allows you to measure similarity based on varying dimensions.\
 **cosine** - measures similarity based on the angle between vectors. This allows you to measure similarity that isn't scaled by magnitude.\
@@ -307,7 +307,7 @@ createIndex(embeddingNamespace, type)
 
 * `type`: For this example, we are going to create an **Atlas vector Search Index** and therefore we will create a `vectorSearch` index type.
 * `definition.fields`: This is an array that contains, at least:
-  * The primarly definition of our Vector Search index:
+  * The primary definition of our Vector Search index:
 
   ```js
   {
@@ -325,7 +325,7 @@ createIndex(embeddingNamespace, type)
 
 Finally, as we mentioned earlier, we are going to issue a `POST` request using the [Atlas Admin API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/) for creating this index in our Atlas cluster.
 
-### 3 - Create an cosine type Atlas Vector Search Index in your Atlas Cluster.
+### 3 - Create a cosine type Atlas Vector Search Index in your Atlas Cluster.
 
 This is exactly the same as before but in this case we are going to create a new index named `vs_cosine` for creating a similarity cosine vector search index in our Atlas Cluster.
 
@@ -333,14 +333,14 @@ This is exactly the same as before but in this case we are going to create a new
 
 This is exactly the same as before but in this case we are going to create a new index named `vs_dotProduct` for creating a similarity dotProduct vector search index in our Atlas Cluster.
 
-> Please note that an M0 Free tier cluster would only us to create a maximum of **3 indexes**.
+> Please note that an M0 Free tier cluster would only allow us to create a maximum of **3 indexes**.
 {: .prompt-warning}
 
-### 5 - Create a Atlas Search index in your Atlas Cluster.
+### 5 - Create an Atlas Search index in your Atlas Cluster.
 
-This project will also allow us to create an [Atlas Search Index](https://www.mongodb.com/docs/atlas/atlas-search/create-index/) to compare results. Thus, we can use the same input query to evaluate the results using an Vector Search Index vs an Atlas Search Index.
+This project will also allow us to create an [Atlas Search Index](https://www.mongodb.com/docs/atlas/atlas-search/create-index/) to compare results. Thus, we can use the same input query to evaluate the results using a Vector Search Index vs an Atlas Search Index.
 
-The overall logic is very similar to what we have defined and used before except that the body of the `POST` request is sligthly different:
+The overall logic is very similar to what we have defined and used before except that the body of the `POST` request is slightly different:
 
 ```js
 createIndex(namespace, '', false)
@@ -371,7 +371,7 @@ An Atlas Search index is defined with:
 }
 ```
 
-The firts fields: `database`, `collection`, `name`, `type` and `definition` will be present, however, there are some differences:
+The fields fields: `database`, `collection`, `name`, `type` and `definition` will be present, however, there are some differences:
 
 * `type`: In this case we are going to create a `search` type index instead of a `vector` type.
 * `definition`:
@@ -382,7 +382,7 @@ Once this Atlas Search index is created we can use the `plot` type for using ful
 
 ### 6 - Query using an Atlas Vector Search Index.
 
-This last option will allow us to test that the creation of the embeddings and the Vector Search is working as expected. For this option we are using the hardcoded input: `War in outer space` and using `Langchaing MongoDBAtlasVectorSearch` to return the first result with higher [vector score](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-stage/#atlas-vector-search-score).
+This last option will allow us to test that the creation of the embeddings and the Vector Search is working as expected. For this option, we are using the hardcoded input: `War in outer space` and using `Langchaing MongoDBAtlasVectorSearch` to return the first result with a higher [vector score](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-stage/#atlas-vector-search-score).
 
 If all previous steps worked fine, the result we will get is the following:
 
