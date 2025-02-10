@@ -16,8 +16,6 @@ In this tutorial, I am going to explain an application project I have created sh
 
 We will take a step by step look at the three parts of this project to explain how it works and what is going on behind the scenes. To do so, **part 1** is going to start with the creation of vectors using **OpenAI + Langchain + MongoDB Atlas**.
 
-![Application running example](assets/img/blog/movies-vector-search/movies-vector-search-example.gif)
-
 You can find the repository of this project [here](https://github.com/josmanperez/atlas-vector-search-rag): which is important to download in advance as we are going to explain what each part does under the hood.
 
 ---
